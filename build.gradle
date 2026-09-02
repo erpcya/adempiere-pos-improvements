@@ -1,7 +1,8 @@
 apply plugin: 'java-library'
 apply plugin: 'maven-publish'
 apply plugin: 'signing'
-sourceCompatibility = 1.11
+sourceCompatibility = 1.17
+targetCompatibility = 1.17
 def baseVersion = '3.9.4'
 def baseGroupId = 'io.github.adempiere'
 
@@ -41,9 +42,12 @@ java {
     withSourcesJar()
 }
 
-signing {
-    sign configurations.archives
-}
+//  Signing is a Maven Central requirement. GitHub Packages does not verify
+//  signatures, and a build that stops for a missing key nobody set is a build
+//  that fails for a rule that does not apply here.
+//  signing {
+//      sign configurations.archives
+//  }
 
 def entityType = 'D'
 version = System.getenv("ADEMPIERE_LIBRARY_VERSION") ?: "local-1.0.0"
@@ -59,10 +63,15 @@ jar {
 publishing {
     repositories {
         maven {
-            url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+            //  This fork's own packages. Central carries upstream's artifact under
+            //  the same coordinate, and what this repository builds is not that.
+            //  The property still overrides it, for a repository that genuinely
+            //  publishes elsewhere.
+            url = findProperty("deployPublishUrl")
+                    ?: "https://maven.pkg.github.com/erpcya/adempiere-pos-improvements"
             credentials {
-                username = findProperty("sonatypeUsername")
-                password = findProperty("sonatypePassword")
+                username = System.getenv("GITHUB_DEPLOY_USER") ?: findProperty("sonatypeUsername")
+                password = System.getenv("GITHUB_DEPLOY_TOKEN") ?: findProperty("sonatypePassword")
             }
         }
     }
@@ -90,22 +99,24 @@ publishing {
                     }
                 }
                 scm {
-                    connection = 'scm:git:git://github.com/adempiere/adempiere-pos-improvements.git'
-                    developerConnection = 'scm:git:ssh://github.com/adempiere/adempiere-pos-improvements.git'
-                    url = 'http://github.com/adempiere/adempiere-pos-improvements'
+                    //  The fork, not upstream. Whoever follows this from a
+                    //  published artifact wants the source that produced it.
+                    connection = 'scm:git:git://github.com/erpcya/adempiere-pos-improvements.git'
+                    developerConnection = 'scm:git:ssh://github.com/erpcya/adempiere-pos-improvements.git'
+                    url = 'http://github.com/erpcya/adempiere-pos-improvements'
                 }
             }
 		}
 	}
 }
 
-signing {
-    sign publishing.publications.mavenJava
-}
+//  signing {
+//      sign publishing.publications.mavenJava
+//  }
 
-signing {
-	def signingKey = findProperty("signingKey")
-    def signingPassword = findProperty("signingPassword")
-    useInMemoryPgpKeys(signingKey, signingPassword)
-    sign publishing.publications.mavenJava
-}
+//  signing {
+//  	def signingKey = findProperty("signingKey")
+//      def signingPassword = findProperty("signingPassword")
+//      useInMemoryPgpKeys(signingKey, signingPassword)
+//      sign publishing.publications.mavenJava
+//  }
