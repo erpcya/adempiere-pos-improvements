@@ -41,7 +41,11 @@ jobs:
         run: ./gradlew publish
         env:
           ADEMPIERE_LIBRARY_VERSION: ${{ github.event.release.tag_name }}
-          ADEMPIERE_LIBRARY_GROUP: ${{ secrets.ADEMPIERE_LIBRARY_GROUP }}
+          #  Not passed. The organization's secret holds a group meant for other
+          #  repositories, and a configured value valid elsewhere wins over the one
+          #  this file states — which is how this published under com.erpya while
+          #  its four siblings publish under io.github.adempiere. build.gradle says
+          #  which group this uses; pass this again only to override it deliberately.
           #  The run's own token: this publishes to this repository's own
           #  packages, and the run's token is scoped to exactly that.
           GITHUB_DEPLOY_USER: ${{ github.actor }}

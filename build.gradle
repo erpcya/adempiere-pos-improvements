@@ -51,7 +51,13 @@ java {
 
 def entityType = 'D'
 version = System.getenv("ADEMPIERE_LIBRARY_VERSION") ?: "local-1.0.0"
-def customGroupId = System.getenv("ADEMPIERE_LIBRARY_GROUP")
+//  The coordinate this publishes under, stated here rather than only in an
+//  organization secret from 2023 that no reader of this file can see. The variable
+//  still overrides it, which is how a fork changes its own group without changing
+//  everybody's — but a checkout with nothing configured now publishes under the
+//  same coordinate as the rest of these libraries instead of under whatever the
+//  organization happens to hold.
+def customGroupId = System.getenv("ADEMPIERE_LIBRARY_GROUP") ?: "io.github.adempiere"
 jar {
     manifest {
         attributes("Implementation-Title": "Adempiere Template Management",
